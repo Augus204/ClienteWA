@@ -1,0 +1,293 @@
+{% extends './base.html' %}
+
+{% block title %}Visual usuario{% endblock %}
+
+{% block customCSS %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+<!-- DataTables Bootstrap CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+
+<!-- jQuery y DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+   
+
+{% endblock %}
+
+{% block body %}
+<div>
+    <nav class="navbar navbar-dark"> 
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="{{ url_for('static', filename='img/IconWhatsApp.png') }}" alt="" width="50" height="50" class="d-inline-block aling-text-top">
+                Bienvenid@
+            </a>
+
+            <a class="nav-link active" aria-current="page" href="/logout"><button>Cerrar sesión</button></a>
+        </div>
+    </nav>
+
+    <div class="box">
+        <h2>Lista de filtros</h2>
+        <!-- filter_content -->
+        <form class="filter row mb-3" id="formfilter">
+            <div class="col-md-4">
+                <label class="form-label">Rango de fecha</label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="date" class="form-control" id="selectDateFirst"/>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="date" class="form-control" id="selectDateLast"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Cliente</label>
+                <select id="filterClient" class="form-select">
+                    <option value="">Todos</option>
+                    {% for id, name in categoria %}
+                    <option value="{{ name }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Estado</label>
+                <select id="filterStatus" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="Unread" selected>Sin revisar</option>
+                    <option value="Read">Revisado</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button  class="btn btn-primary" id="filterBtn" type="submit">Filtrar</button>
+            </div>
+            <div class="col-md-2">
+                <button  class="btn btn-primary" id="clearBtn" type="button">Limpiar filtros</button>
+            </div>
+        </form>
+    </div>
+
+<div class="box">
+    <table id="messagetable" class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Grupo</th>
+                <th>Mensaje</th>
+                <th>Estado</th>
+                <th>Accion</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+</div>
+</div>
+
+    <script>
+        // Cargar los datos de la base de datos 
+        $(document).ready(function() {
+            let table = $('#messagetable').DataTable({
+                "ajax": {
+                    "url": "/get_data_table",
+                    "type": "POST",
+                    "contentType": "application/json",
+                    "data": function(d){
+                        return JSON.stringify({           
+                            first_date: $('#selectDateFirst').val(), 
+                            last_date: $('#selectDateLast').val(), 
+                            client: $('#filterClient').val(), 
+                            status: $('#filterStatus').val()
+                        });
+                    },
+                    "dataSrc": ""
+                },
+                "columns": [
+                    { "data": "id" },
+                    { "data": "fecha" },
+                    { "data": "cliente" },
+                    { "data": "grupo" },
+                    { "data": "mensaje" },
+                    { "data": "estado", "visible": false },
+                    { "data": null, 
+                        "render": function(data, type, row){ 
+                            let btnClass = "btn-danger";
+                            let btnText = "Pendiente";
+                            let btnStatus = "";
+
+                            if (row.estado == "Read"){
+                            btnClass = "btn-primary";
+                            btnText = "Verificado";
+                            btnStatus = "disabled";
+                            }
+
+                            return `<button class="btn ${btnClass} btnRead" data-id="${row.id}" ${btnStatus}>${btnText}</button>`;
+                        }}
+                ],
+                // "columnDefs": [
+                //         { "width": "0%", "targets": 5 }//, // Ancho del 10% para la columna ID
+                //         //{ "width": "40%", "targets": 4 }  // Ancho del 40% para la columna Nombre
+                //     ],
+                "dom": "tp",
+                "ordering": false, 
+                "pageLength": 10,
+                "language": { "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json"}
+            });
+
+            $('#selectDateFirst, #selectDateLast, #filterClient, #filterStatus').on('input', function() {
+                autoUpdate = false;
+            });
+
+            $('#formfilter').on('submit', function(e) {
+                e.preventDefault();
+                autoUpdate = true
+                table.ajax.reload();  // Recargar la tabla con los nuevos filtros
+            });
+
+            
+            $('#clearBtn').on('click', function() {
+                $('#selectDateFirst').val('');
+                $('#selectDateLast').val('');
+                $('#filterClient').val('');
+                $('#filterStatus').val('Unread');
+                autoUpdate = true
+                table.ajax.reload();  // Recargar la tabla con los nuevos filtros
+            });
+
+            // var estadoInicial = $("#filterStatus").val();
+
+            // if (estadoInicial){
+            //     table.column(5).search(estadoInicial ? "^" + estadoInicial + "$" : "", true, false).draw();
+            // }
+        
+            setInterval(function() {
+                if (autoUpdate){
+                    table.ajax.reload(null, false); // false evita que se pierda la paginación
+                }
+            }, 10000); // 10,000 ms = 10 segundos, 600000 = 10 min
+
+
+            // Aplicacion de filtros desde Frontend - En revision - Funcional
+            // $("#startDate, #endDate, #filterStatus, #filterClient").on("change", function() {
+            //     var value = $("#filterStatus").val();
+            //     let startDate = $("#startDate").val();
+            //     let endDate = $("#endDate").val();
+
+            //     let startDateFormatted = startDate ? startDate.split("-").reverse().join("/") : "";
+            //     let endDateFormatted = endDate ? endDate.split("-").reverse().join("/") : "";
+
+            //     table.column(5).search(value ? "^" + value + "$" : "", true, false).draw();
+            //     table.column(2).search($("#filterClient").val()).draw();
+            //     // table.column(1).search(startDateFormatted + " - " + endDateFormatted, true, false).draw();
+
+
+            //     // Convertimos las fechas al formato DD/MM/YYYY para buscar en la tabla
+
+
+            //     // Aplicar búsqueda en la columna de fecha (columna índice 1 en DataTables)
+                
+            // });
+
+            // Boton de acción para actualizar el mensaje
+            $('#messagetable tbody').on('click', '.btnRead', function() {
+                let id = $(this).data("id");
+                verificarMensaje(id); 
+
+            });
+
+            // Actualización del estado del mensaje
+            function verificarMensaje(id){
+                $.ajax({
+                    url: "/modify_data/" + id,  // Ruta en Flask para eliminar
+                    type: "POST",
+                    success: function(response) {
+                        table.ajax.reload(null, false); // Actualizacion de la tabla
+
+                    },
+                    error: function(){
+                        alert("Error al actualizar el estado del mensaje");
+                    }
+                });
+            }
+
+            // Funcion: Permite solo seleccionar las fechas que estan presentes en la base de datos
+            // table.on('xhr.dt', function(e, settings, json) {
+            //     if (json && Array.isArray(json) && json.length > 0) {
+            //         let fechas = json.map(d => {
+            //             let match = d.fecha.match(/(\d{2})\/(\d{2})\/(\d{4})/); // Extrae DD/MM/YYYY
+            //             if (match) {
+            //                 let formattedDate = `${match[3]}-${match[2]}-${match[1]}`; // YYYY-MM-DD
+            //                 return new Date(formattedDate);
+            //             }
+            //             return null;
+            //         })
+       
+            //         if (fechas.length > 0) {                       
+            //             let minDate = new Date(Math.min(...fechas)).toISOString().split('T')[0];
+            //             let maxDate = new Date(Math.max(...fechas)).toISOString().split('T')[0];
+
+            //             // Primera fecha
+            //             $("#selectDateFirst").attr("min", minDate);
+            //             $("#selectDateFirst").attr("max", maxDate);
+
+            //             // Ultima fecha
+            //             $("#selectDateLast").attr("min", minDate);
+            //             $("#selectDateLast").attr("max", maxDate);
+            //         }
+            //     }
+            // });
+
+            // document.getElementById('formfilter').addEventListener('submit', function(e) {
+            //     e.preventDefault();
+
+            //     const firstDate = document.getElementById('selectDateFirst').value;
+            //     const lastDate = document.getElementById('selectDateLast').value;
+            //     const typeClient = document.getElementById('filterClient').value;
+            //     const statusMessage = document.getElementById('filterStatus').value;
+
+            //         // Realizar la solicitud AJAX
+            //     fetch('/filter_content', {
+            //         method: 'POST',
+            //         headers: {'Content-Type': 'application/json'},
+            //         body: JSON.stringify({ first_date: firstDate, last_date:lastDate, client:typeClient, status:statusMessage})
+            //     })
+
+
+                // .then(response => response.json())
+                // .then(data => {
+                
+                // Aquí puedes actualizar la tabla con los resultados filtrados
+                // const table = document.getElementById('results-table');
+                // table.innerHTML = '';  // Limpiar la tabla
+
+                //     // Agregar los datos filtrados a la tabla
+                //     data.forEach(row => {
+                //         const tr = document.createElement('tr');
+                //         row.forEach(cell => {
+                //         const td = document.createElement('td');
+                //         td.textContent = cell;
+                //         tr.appendChild(td);
+                //         });
+                //         table.appendChild(tr);
+                //     });
+                //     });
+                // });
+
+        });
+
+       
+    </script>
+    <!-- FontAwesome para iconos -->
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+
+</div>
+{% endblock %}

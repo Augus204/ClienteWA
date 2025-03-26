@@ -1,0 +1,50 @@
+body{
+    /* display: flex; */
+    /* width: 100vw;
+    height: 100vh; */
+    background-color: #128c7e;
+}
+
+nav{
+    background-color: #075e54
+    /* #1B4D3E; 	 */
+}
+
+nav button{
+    font-size: 1rem;
+    padding: 5px 10px;
+    background-color: #E52D33;
+    color: #ddd;
+    /* margin-right: 20px; */
+}
+
+nav button:hover {
+    background-color: #291E29;
+    color: #ddd;
+    transform: scale(1,1);
+}
+
+div .box .filtro {
+    align-items: center;
+
+}
+
+div .box {
+    background-color: #ffff;
+    margin: 15px 30px;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+
+#messagetable {
+    width: 100% !important;
+}
+/*th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+} */
+/* button .btnDelete {
+    width: 100px;
+} */

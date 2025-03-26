@@ -1,0 +1,138 @@
+{% extends './base.html' %}
+
+{% block title %}Visual administrador{% endblock %}
+
+{% block customCSS %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+<!-- DataTables Bootstrap CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+
+<!-- jQuery y DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+
+{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-dark"> 
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <img src="{{ url_for('static', filename='img/IconWhatsApp.png') }}" alt="" width="50" height="50" class="d-inline-block aling-text-top">
+            Bienvenid@ - Administrador
+        </a>
+
+        <a class="nav-link active" aria-current="page" href="/logout"><button>Cerrar sesión</button></a>
+    </div>
+</nav>
+
+
+<div class="box-main">
+
+    <div class="box num1">
+        <div class="boxtable">
+            <h2>Tabla de registros</h2>
+            <table id="ClientTable" class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Numero</th>
+                    </tr>
+                </thead>
+                <tbody>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="box num2">
+
+        <div class="search num1">
+            
+            <form action="/cargar_datos" method="post">
+                <h2 class="mb-4">Registro de clientes/empleados</h2>
+                <div class="mb-3 row">
+                    <label for="nameClient" class="col-sm-4 col-form-label">Nombre:</label>
+                    <!--  -->
+                    <div class="col-sm-6">
+                    <input type="text" class="form-control" id="nameClient" name="nameClient" required>
+                    </div>
+                </div>
+                <div class="mb-3 row">
+                    <label for="numClient" class="col-sm-4 col-form-label">N. Telefónico:</label>
+                    <div class="col-sm-6">
+                    <input type="text" class="form-control" id="numClient" name="numClient" required>
+                    </div>
+                </div>
+                <div class="mb-3 row">
+                    <label for="nickClient" class="col-sm-4 col-form-label">Nick:</label>
+                    <div class="col-sm-6">
+                    <input type="text" class="form-control" id="nickClient" name="nickClient" required>
+                    </div>
+                </div>
+
+                <div class="mb-3 row">
+                    <label class="col-sm-4 col-form-label">Tipo:</label>
+                    <div class="col-sm-6">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="typeClient" id="flexRadioDefault1" value="cliente" checked>
+                            <label class="form-check-label" for="flexRadioDefault1">
+                                Cliente
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="typeClient" id="flexRadioDefault2" value="empleado" >
+                            <label class="form-check-label" for="flexRadioDefault2">
+                                Empleado
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" type="submit">Registrar</button>
+            </form>
+        </div>
+
+        <div class="search num2">
+            <!-- <form >
+                <div class="input-group">
+                    <input type="file" class="form-control" id="inputGroupFile" accept=".csv" required>
+                    <label class="input-group-text" for="inputGroupFile">Upload</label>
+                </div>
+                <button>Buscar</button>
+            </form> -->
+        </div>
+
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        let table = $('#ClientTable').DataTable({
+                "ajax": {
+                    "url": "/get_client_table",
+                    "dataSrc": ""
+                },
+                "columns": [
+                    { "data": "id" },
+                    { "data": "nombre" },
+                    { "data": "tipo" },
+                    { "data": "numero" }
+                ],
+                "dom": "tp",
+                "ordering": false, 
+
+                "pageLength": 8,
+                "language": { "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json"}
+        });
+    });
+
+</script>
+
+{% endblock %}
